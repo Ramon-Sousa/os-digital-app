@@ -1,7 +1,62 @@
 ﻿@page "/"
+@using OsDigitalMVP.Models
+@using OsDigitalMVP.Data
+@inject HttpClient Http
+@inject AppDbContext Db
+@rendermode InteractiveServer
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Nova OS Digital</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="container" style="max-width: 600px; margin-top: 50px;">
+    <h3 style="font-weight: 300; margin-bottom: 30px;">Criar nova ordem de serviço digital</h3>
 
-Welcome to your new app.
+    <div class="card" style="border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; box-shadow: none;">
+        <div class="mb-3">
+            <input @bind="novaOS.CEP" @onblur="ConsultarCEP" class="form-control" placeholder="CEP" />
+        </div>
+        <div class="mb-3">
+            <input @bind="novaOS.Endereco" class="form-control" placeholder="Endereço (via API)" readonly="@buscando" />
+        </div>
+        <div class="mb-3">
+            <input @bind="novaOS.CNPJ" class="form-control" placeholder="CNPJ (Alfanumérico 2026)" />
+        </div>
+        <button class="btn btn-primary w-100" style="background: #2563eb; border: none; border-radius: 8px; height: 45px;" @onclick="Salvar">
+            Salvar OS
+        </button>
+    </div>
+</div>
+
+@code {
+    private OrdemServico novaOS = new();
+    private bool buscando = false;
+
+    private async Task ConsultarCEP()
+    {
+        var cep = novaOS.CEP?.Replace("-", "").Trim();
+        if (cep?.Length == 8)
+        {
+            buscando = true;
+            try {
+                var json = await Http.GetFromJsonAsync<ViaCepResult>($"https://viacep.com.br/ws/{cep}/json/");
+                if (json != null && string.IsNullOrEmpty(json.Erro)) {
+                    novaOS.Endereco = $"{json.Logradouro}, {json.Bairro} - {json.Localidade}/{json.Uf}";
+                }
+            } catch { /* log error */ }
+            finally { buscando = false; }
+        }
+    }
+
+    private async Task Salvar() {
+        Db.OrdensServico.Add(novaOS);
+        await Db.SaveChangesAsync();
+        novaOS = new(); // Reset
+    }
+
+    public class ViaCepResult {
+        public string Logradouro { get; set; } = "";
+        public string Bairro { get; set; } = "";
+        public string Localidade { get; set; } = "";
+        public string Uf { get; set; } = "";
+        public string Erro { get; set; } = "";
+    }
+}
