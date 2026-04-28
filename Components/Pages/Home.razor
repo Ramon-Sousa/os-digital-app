@@ -6,137 +6,111 @@
 @inject AppDbContext Db
 @rendermode InteractiveServer
 
-<PageTitle>Nova OS Digital</PageTitle>
-
-<div class="container" style="max-width: 600px; margin-top: 50px;">
-    <h3 style="font-weight: 300; margin-bottom: 30px;">Criar nova ordem de serviço digital</h3>
-
-    <div class="card" style="border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; box-shadow: none;">
-        <div class="mb-3">
-            <input @bind="novaOS.CEP" @onblur="ConsultarCEP" class="form-control" placeholder="Digite seu CEP" />
-        </div>
-        <div class="mb-3">
-            <input @bind="novaOS.Endereco" class="form-control" placeholder="Ex: Rua Alameda" readonly="@buscando" />
-        </div>
-        <div class="mb-3">
-            <input @bind="novaOS.CNPJ" 
-                   @oninput="OnCnpjInput" 
-                   class="form-control" 
-                   placeholder="CNPJ (AA.AAA.AAA/AAAA-DV)" 
-                   maxlength="18" />
-        </div>
-        <div class="mb-3">
-            <input @bind="novaOS.ClienteNome" class="form-control" placeholder="Nome do Cliente" />
-        </div>
-        <div class="mb-3">
-            <textarea @bind="novaOS.Descricao" class="form-control" placeholder="Descrição do serviço"></textarea>
-        </div>
-        <button class="btn btn-primary w-100" style="background: #000; border: none; border-radius: 8px; height: 45px;" @onclick="Salvar">
-            CRIAR OS
-        </button>
-    </div>
-
-    @if (ordens != null && ordens.Any())
-    {
-        <hr class="my-5" style="border-top: 1px solid #e2e8f0;" />
-        <h4 style="font-weight: 300; margin-bottom: 20px;">Útimas ordens criadas</h4>
-        <div class="table-responsive">
-            <table class="table" style="font-size: 0.9rem;">
-                <thead>
-                    <tr style="color: #64748b;">
-                        <th>Cliente</th>
-                        <th>CNPJ</th>
-                        <th>ID</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var os in ordens)
-                    {
-                        <tr>
-                            <td>@os.ClienteNome</td>
-                            <td>@os.CNPJ</td>
-                            <td class="text-muted">#@os.Id</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    }
+<div class="Tab-Nav">
+    <div class="Tab-Item @(ActiveTab == "Criar" ? "Active" : "")" @onclick='() => SetTab("Criar")'>Criar Nova OS</div>
+    <div class="Tab-Item @(ActiveTab == "Listar" ? "Active" : "")" @onclick='() => SetTab("Listar")'>Ordens Recentes</div>
 </div>
 
+@if (ActiveTab == "Criar")
+{
+
+    <div class="Card-Blueprint">
+    <h1 style="font-weight: 300; font-size: 1.5rem; text-align: center; letter-spacing: -0.05em; margin-bottom: 2rem;">Nova Ordem de Serviço</h1>
+        <input @bind="NovaOS.ClienteNome" class="Input-Standard" placeholder="Nome do Cliente" />
+        <input @bind="NovaOS.CNPJ" @oninput="OnCnpjInput" class="Input-Standard" placeholder="CNPJ (AA.AAA.AAA/AAAA-DV)" maxlength="18" />
+        <input @bind="NovaOS.CEP" @onblur="ConsultarCEP" class="Input-Standard" placeholder="Digite o CEP" />
+        <input @bind="NovaOS.Endereco" class="Input-Standard" placeholder="Ex: Rua Alameda" readonly="@Buscando" />
+        <textarea @bind="NovaOS.Descricao" class="Input-Standard" placeholder="Descrição do serviço" style="min-height: 120px"></textarea>
+        
+        <button class="Button-Primary" @onclick="Salvar">Criar ordem de serviço</button>
+    </div>
+}
+else
+{
+    <h1 style="font-weight: 300; font-size: 2.5rem; letter-spacing: -0.05em; margin-bottom: 2rem;">Ordens de serviço</h1>
+
+    @if (Ordens == null || !Ordens.Any())
+    {
+        <p style="color: var(--text-secondary)">Nenhuma ordem de serviço encontrada.</p>
+    }
+    else
+    {
+        @foreach (var os in Ordens)
+        {
+            <div class="Card-Blueprint mb-3" style="padding: 1.5rem; background: white;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div style="font-weight: 600; font-size: 1.1rem;">@os.ClienteNome</div>
+                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.25rem;">@os.CNPJ</div>
+                    </div>
+                    <div style="font-family: monospace; font-size: 0.8rem; color: var(--accent)">#@os.Id</div>
+                </div>
+                <div style="margin-top: 1rem; font-size: 0.9rem; line-height: 1.6;">@os.Descricao</div>
+                <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-secondary); border-top: 1px dashed var(--border-dashed); padding-top: 0.75rem;">
+                    Local: @os.Endereco
+                </div>
+            </div>
+        }
+    }
+}
+
 @code {
-    private OrdemServico novaOS = new();
-    private List<OrdemServico> ordens = new();
-    private bool buscando = false;
+    private string ActiveTab = "Criar";
+    private OrdemServico NovaOS = new();
+    private List<OrdemServico> Ordens = new();
+    private bool Buscando = false;
 
-    private void OnCnpjInput(ChangeEventArgs e)
-    {
-        string input = e.Value?.ToString() ?? "";
-    
-        // Remove tudo que não for letra ou número
-        string clean = new string(input.Where(c => char.IsLetterOrDigit(c)).ToArray());
+    protected override async Task OnInitializedAsync() => await CarregarOrdens();
 
-        // Limita a 14 caracteres (tamanho padrão do CNPJ)
-        if (clean.Length > 14) clean = clean.Substring(0, 14);
-
-        // Aplica a máscara: XX.XXX.XXX/XXXX-XX
-        string formatted = clean;
-        if (clean.Length > 2) formatted = formatted.Insert(2, ".");
-        if (clean.Length > 5) formatted = formatted.Insert(6, ".");
-        if (clean.Length > 8) formatted = formatted.Insert(10, "/");
-        if (clean.Length > 12) formatted = formatted.Insert(15, "-");
-
-        novaOS.CNPJ = formatted.ToUpper();
-    }
-    
-    protected override async Task OnInitializedAsync()
-    {
-        await CarregarOrdens();
-    }
+    private void SetTab(string tab) => ActiveTab = tab;
 
     private async Task CarregarOrdens()
     {
-        ordens = await Db.OrdensServico
+        Ordens = await Db.OrdensServico
             .AsNoTracking()
             .OrderByDescending(x => x.Id)
-            .ToListAsync<OrdemServico>(); 
-    }
-
-    private async Task ConsultarCEP()
-    {
-        var cep = novaOS.CEP?.Replace("-", "").Trim();
-        if (cep?.Length == 8)
-        {
-            buscando = true;
-            try 
-            {
-                var result = await Http.GetFromJsonAsync<ViaCepResult>($"https://viacep.com.br/ws/{cep}/json/");
-                if (result != null && string.IsNullOrEmpty(result.Erro))
-                {
-                    novaOS.Endereco = $"{result.Logradouro}, {result.Bairro} - {result.Localidade}/{result.Uf}";
-                }
-            } 
-            finally 
-            { 
-                buscando = false; 
-                StateHasChanged();
-            }
-        }
+            .ToListAsync<OrdemServico>();
     }
 
     private async Task Salvar()
     {
-        if (string.IsNullOrWhiteSpace(novaOS.ClienteNome)) return;
-
-        Db.OrdensServico.Add(novaOS);
+        if (string.IsNullOrWhiteSpace(NovaOS.ClienteNome)) return;
+        Db.OrdensServico.Add(NovaOS);
         await Db.SaveChangesAsync();
-        
-        novaOS = new OrdemServico();
-        await CarregarOrdens(); 
+        NovaOS = new OrdemServico();
+        await CarregarOrdens();
+        ActiveTab = "Listar"; // Vai para a lista após salvar
     }
 
-    public class ViaCepResult
+    private async Task ConsultarCEP()
     {
+        var cep = NovaOS.CEP?.Replace("-", "").Trim();
+        if (cep?.Length == 8)
+        {
+            Buscando = true;
+            try {
+                var res = await Http.GetFromJsonAsync<ViaCepResult>($"https://viacep.com.br/ws/{cep}/json/");
+                if (res != null && string.IsNullOrEmpty(res.Erro))
+                    NovaOS.Endereco = $"{res.Logradouro}, {res.Bairro} - {res.Localidade}/{res.Uf}";
+            } catch { }
+            finally { Buscando = false; StateHasChanged(); }
+        }
+    }
+
+    private void OnCnpjInput(ChangeEventArgs e)
+    {
+        string input = e.Value?.ToString() ?? "";
+        string clean = new string(input.Where(c => char.IsLetterOrDigit(c)).ToArray());
+        if (clean.Length > 14) clean = clean.Substring(0, 14);
+        string fmt = clean;
+        if (clean.Length > 2) fmt = fmt.Insert(2, ".");
+        if (clean.Length > 5) fmt = fmt.Insert(6, ".");
+        if (clean.Length > 8) fmt = fmt.Insert(10, "/");
+        if (clean.Length > 12) fmt = fmt.Insert(15, "-");
+        NovaOS.CNPJ = fmt.ToUpper();
+    }
+
+    public class ViaCepResult {
         public string Logradouro { get; set; } = "";
         public string Bairro { get; set; } = "";
         public string Localidade { get; set; } = "";

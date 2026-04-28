@@ -1,23 +1,21 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu/>
-    </div>
-
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+<div class="Main-Container">
+    <header class="Header-Nav">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="Logo-Text">OS Digital<span style="color: var(--accent)">.</span></div>
+            <a href="https://github.com/Ramon-Sousa" target="_blank" style="text-decoration: none; color: var(--text-primary); font-size: 0.875rem; font-weight: 500;">Github</a>
         </div>
+    </header>
 
-        <article class="content px-4">
-            @Body
-        </article>
+    <main style="padding: 3rem;">
+        @Body
     </main>
-</div>
 
-<div id="blazor-error-ui" data-nosnippet>
-    An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
+    <footer class="Footer-Main">
+        <div class="d-flex justify-content-between">
+            <span>© 2026 — Ramon Sousa</span>
+            <a href="https://github.com/Ramon-Sousa/os-digital-app" target="_blank" style="color: var(--accent); text-decoration: none;">Repositório do projeto</a>
+        </div>
+    </footer>
 </div>

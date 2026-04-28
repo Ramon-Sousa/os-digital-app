@@ -1,43 +1,105 @@
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600&display=swap');
+
 :root {
-    --primary: #000000;
-    --border: #e2e8f0;
-    --bg: #ffffff;
-    --text: #1a202c;
+    --bg-main: #ffffff;
+    --bg-surface: #f4f4f5; /* Zinc-100 */
+    --text-primary: #18181b; /* Zinc-900 */
+    --text-secondary: #71717a; /* Zinc-500 */
+    --accent: #4f46e5; /* Indigo-600 */
+    --border-dashed: #e4e4e7; /* Zinc-200 */
 }
 
 body {
-    font-family: 'Inter', -apple-system, sans-serif;
-    color: var(--text);
-    background-color: var(--bg);
+    font-family: 'Work Sans', sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    margin: 0;
 }
 
-.form-control {
-    border: 1px solid var(--border) !important;
-    border-radius: 8px !important;
-    padding: 12px !important;
-    box-shadow: none !important; 
-    transition: border-color 0.2s ease;
+/* Layout Blueprint */
+.Main-Container {
+    max-width: 1024px;
+    margin: 0 auto;
+    border-left: 1px dashed var(--border-dashed);
+    border-right: 1px dashed var(--border-dashed);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
-.form-control:focus {
-    border-color: var(--primary) !important;
+/* Header & Footer */
+.Header-Nav {
+    padding: 2rem 3rem;
+    border-bottom: 1px dashed var(--border-dashed);
 }
 
-.btn-primary {
-    background-color: var(--primary) !important;
-    border: none !important;
-    border-radius: 8px !important;
+.Logo-Text {
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+}
+
+.Footer-Main {
+    padding: 3rem;
+    border-top: 1px dashed var(--border-dashed);
+    margin-top: auto;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+/* Tabs */
+.Tab-Nav {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.Tab-Item {
+    cursor: pointer;
     font-weight: 500;
-    padding: 12px !important;
-    transition: opacity 0.2s;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
 }
 
-.btn-primary:hover {
-    opacity: 0.8;
+.Tab-Item.Active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
 }
 
-.card {
-    border: 1px solid var(--border) !important;
-    border-radius: 12px !important;
-    box-shadow: none !important;
+/* UI Elements */
+.Card-Blueprint {
+    background: var(--bg-surface);
+    border-radius: 12px;
+    padding: 2rem;
+    border: 1px solid var(--border-dashed);
+}
+
+.Input-Standard {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-dashed);
+    background: white;
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+    transition: border-color 0.2s;
+}
+
+.Input-Standard:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.Button-Primary {
+    background: var(--text-primary);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    border: none;
+    font-weight: 500;
+    width: 100%;
+    cursor: pointer;
 }
